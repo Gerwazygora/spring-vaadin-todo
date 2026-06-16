@@ -10,6 +10,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 @PageTitle("Login")
@@ -53,9 +54,15 @@ public class LoginView extends Composite<VerticalLayout> {
             );
 
             if (loggedIn) {
+
+                VaadinSession.getCurrent()
+                        .setAttribute("user", textField.getValue());
+
                 Notification.show("Zalogowano");
+
                 getUI().ifPresent(ui -> ui.navigate("my-view2"));
-            } else {
+            }
+            else {
                 Notification.show("Błędny login lub hasło");
             }
         });

@@ -22,21 +22,26 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import com.example.application.services.TaskService;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.server.VaadinSession;
 
 @PageTitle("AddTask")
 @Route("my-view4")
 @Menu(order = 3, icon = LineAwesomeIconUrl.PENCIL_RULER_SOLID)
 @Uses(Icon.class)
 public class AddTaskView extends Composite<VerticalLayout> {
+    private final TaskService taskService;
 
-    public AddTaskView() {
+    public AddTaskView(TaskService taskService) {
+        this.taskService = taskService;
         H1 h1 = new H1();
         HorizontalLayout layoutRow = new HorizontalLayout();
         Grid basicGrid = new Grid(SamplePerson.class);
         VerticalLayout layoutColumn2 = new VerticalLayout();
         TextField textField = new TextField();
         TextField textField2 = new TextField();
-        ComboBox comboBox = new ComboBox();
+        ComboBox<String> comboBox = new ComboBox<>();
         TextField textField3 = new TextField();
         TextField textField4 = new TextField();
         HorizontalLayout layoutRow2 = new HorizontalLayout();
@@ -53,7 +58,6 @@ public class AddTaskView extends Composite<VerticalLayout> {
         layoutRow.getStyle().set("flex-grow", "1");
         basicGrid.setWidth("100%");
         basicGrid.getStyle().set("flex-grow", "0");
-        setGridSampleData(basicGrid);
         layoutColumn2.setHeightFull();
         layoutRow.setFlexGrow(1.0, layoutColumn2);
         layoutColumn2.setWidth("100%");
@@ -64,7 +68,7 @@ public class AddTaskView extends Composite<VerticalLayout> {
         textField2.setWidth("min-content");
         comboBox.setLabel("Priority");
         comboBox.setWidth("min-content");
-        setComboBoxSampleData(comboBox);
+        comboBox.setItems("Low", "Medium", "High");
         textField3.setLabel("Date");
         textField3.setWidth("min-content");
         textField4.setLabel("Add step");
@@ -92,25 +96,35 @@ public class AddTaskView extends Composite<VerticalLayout> {
         layoutColumn2.add(layoutRow2);
         layoutRow2.add(buttonPrimary);
         layoutRow2.add(buttonPrimary2);
+
+        buttonPrimary.addClickListener(event -> {
+            Notification.show("Kroki dodamy później");
+        });
+
+        buttonPrimary2.addClickListener(event -> {
+            String user = (String) VaadinSession.getCurrent().getAttribute("user");
+
+            if (user == null) {
+                getUI().ifPresent(ui -> ui.navigate(""));
+                return;
+            }
+
+            taskService.addTask(
+                    textField.getValue(),
+                    textField2.getValue(),
+                    comboBox.getValue() == null ? "" : comboBox.getValue().toString(),
+                    textField3.getValue(),
+                    user
+            );
+
+            Notification.show("Zadanie dodane");
+            getUI().ifPresent(ui -> ui.navigate("my-view2"));
+        });
     }
 
-    private void setGridSampleData(Grid grid) {
-        grid.setItems(query -> samplePersonService.list(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
-    }
 
-    @Autowired()
-    private SamplePersonService samplePersonService;
 
-    record SampleItem(String value, String label, Boolean disabled) {
-    }
 
-    private void setComboBoxSampleData(ComboBox comboBox) {
-        List<SampleItem> sampleItems = new ArrayList<>();
-        sampleItems.add(new SampleItem("first", "First", null));
-        sampleItems.add(new SampleItem("second", "Second", null));
-        sampleItems.add(new SampleItem("third", "Third", Boolean.TRUE));
-        sampleItems.add(new SampleItem("fourth", "Fourth", null));
-        comboBox.setItems(sampleItems);
-        comboBox.setItemLabelGenerator(item -> ((SampleItem) item).label());
-    }
+
+
 }

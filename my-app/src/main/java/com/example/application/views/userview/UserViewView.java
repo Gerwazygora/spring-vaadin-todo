@@ -16,18 +16,33 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import com.vaadin.flow.server.VaadinSession;
+import com.example.application.data.Task;
+import com.example.application.services.TaskService;
 
 @PageTitle("UserView")
 @Route("my-view2")
 @Menu(order = 2, icon = LineAwesomeIconUrl.PENCIL_RULER_SOLID)
 @Uses(Icon.class)
 public class UserViewView extends Composite<VerticalLayout> {
+    private final TaskService taskService;
 
-    public UserViewView() {
+    public UserViewView(TaskService taskService) {
+        this.taskService = taskService;
+        String user =
+                (String) VaadinSession
+                        .getCurrent()
+                        .getAttribute("user");
+
+        if (user == null) {
+            getUI().ifPresent(ui -> ui.navigate(""));
+            return;
+        }
         VerticalLayout layoutColumn2 = new VerticalLayout();
         H1 h1 = new H1();
+        H1 userInfo = new H1("Witaj " + user);
         Button buttonPrimary = new Button();
-        Grid basicGrid = new Grid(SamplePerson.class);
+        Grid<Task> basicGrid = new Grid<>();
         getContent().setWidth("100%");
         getContent().getStyle().set("flex-grow", "1");
         layoutColumn2.setWidthFull();
@@ -41,17 +56,20 @@ public class UserViewView extends Composite<VerticalLayout> {
         buttonPrimary.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         basicGrid.setWidth("100%");
         basicGrid.getStyle().set("flex-grow", "0");
-        setGridSampleData(basicGrid);
+        basicGrid.addColumn(Task::getTitle).setHeader("Name");
+        basicGrid.addColumn(Task::getPriority).setHeader("Priority");
+        basicGrid.addColumn(Task::getDate).setHeader("Date");
+        basicGrid.setItems(taskService.getTasks(user));
         getContent().add(layoutColumn2);
         layoutColumn2.add(h1);
+        layoutColumn2.add(userInfo);
         layoutColumn2.add(buttonPrimary);
         layoutColumn2.add(basicGrid);
+
+        buttonPrimary.addClickListener(event ->
+                getUI().ifPresent(ui -> ui.navigate("my-view4"))
+        );
     }
 
-    private void setGridSampleData(Grid grid) {
-        grid.setItems(query -> samplePersonService.list(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
-    }
 
-    @Autowired()
-    private SamplePersonService samplePersonService;
 }
