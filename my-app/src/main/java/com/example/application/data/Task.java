@@ -4,6 +4,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Task {
@@ -17,6 +21,9 @@ public class Task {
     private String ownerLogin;
     private String priority;
     private String date;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    private List<TaskStep> steps = new ArrayList<>();
 
     public Task() {
     }
@@ -61,5 +68,13 @@ public class Task {
 
     public void setDone(boolean done) {
         this.done = done;
+    }
+
+    public void addStep(String name) {
+        steps.add(new TaskStep(name, this));
+    }
+
+    public List<TaskStep> getSteps() {
+        return steps;
     }
 }

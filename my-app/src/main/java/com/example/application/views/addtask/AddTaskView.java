@@ -25,6 +25,8 @@ import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import com.example.application.services.TaskService;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.server.VaadinSession;
+import java.util.ArrayList;
+import java.util.List;
 
 @PageTitle("AddTask")
 @Route("my-view4")
@@ -34,6 +36,7 @@ public class AddTaskView extends Composite<VerticalLayout> {
     private final TaskService taskService;
 
     public AddTaskView(TaskService taskService) {
+        List<String> steps = new ArrayList<>();
         this.taskService = taskService;
         H1 h1 = new H1();
         HorizontalLayout layoutRow = new HorizontalLayout();
@@ -98,7 +101,11 @@ public class AddTaskView extends Composite<VerticalLayout> {
         layoutRow2.add(buttonPrimary2);
 
         buttonPrimary.addClickListener(event -> {
-            Notification.show("Kroki dodamy później");
+            if (!textField4.getValue().isBlank()) {
+                steps.add(textField4.getValue());
+                Notification.show("Step added: " + textField4.getValue());
+                textField4.clear();
+            }
         });
 
         buttonPrimary2.addClickListener(event -> {
@@ -112,13 +119,22 @@ public class AddTaskView extends Composite<VerticalLayout> {
             taskService.addTask(
                     textField.getValue(),
                     textField2.getValue(),
-                    comboBox.getValue() == null ? "" : comboBox.getValue().toString(),
+                    comboBox.getValue() == null ? "" : comboBox.getValue(),
                     textField3.getValue(),
-                    user
+                    user,
+                    steps
             );
 
             Notification.show("Zadanie dodane");
             getUI().ifPresent(ui -> ui.navigate("my-view2"));
+        });
+
+        buttonPrimary.addClickListener(event -> {
+            if (!textField4.getValue().isBlank()) {
+                steps.add(textField4.getValue());
+                Notification.show("Step added: " + textField4.getValue());
+                textField4.clear();
+            }
         });
     }
 
