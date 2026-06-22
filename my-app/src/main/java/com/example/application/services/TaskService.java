@@ -3,6 +3,7 @@ package com.example.application.services;
 import com.example.application.data.Task;
 import com.example.application.data.TaskRepository;
 import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 import java.util.List;
 
@@ -25,5 +26,9 @@ public class TaskService {
 
     public List<Task> getTasks(String ownerLogin) {
         return taskRepository.findByOwnerLogin(ownerLogin);
+    }
+
+    public Optional<Task> getTaskById(Long id) {
+        return taskRepository.findById(id);
     }
 }
