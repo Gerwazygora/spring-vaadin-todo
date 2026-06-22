@@ -31,4 +31,16 @@ public class TaskService {
     public Optional<Task> getTaskById(Long id) {
         return taskRepository.findById(id);
     }
+
+    public void markDone(Long id) {
+
+        taskRepository.findById(id).ifPresent(task -> {
+            task.setDone(true);
+            taskRepository.save(task);
+        });
+    }
+
+    public void deleteTask(Long id) {
+        taskRepository.deleteById(id);
+    }
 }

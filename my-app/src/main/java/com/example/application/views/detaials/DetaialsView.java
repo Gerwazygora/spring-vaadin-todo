@@ -14,6 +14,7 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import com.vaadin.flow.component.notification.Notification;
 
 @PageTitle("Detaials")
 @Route("my-view3/:taskId")
@@ -27,6 +28,10 @@ public class DetaialsView extends Composite<VerticalLayout> implements BeforeEnt
     private final Paragraph priority = new Paragraph();
     private final Paragraph date = new Paragraph();
     private final Button backButton = new Button("Back");
+    private final Button deleteButton = new Button("Delete Task");
+    private Task currentTask;
+    private final Paragraph status = new Paragraph();
+
 
     public DetaialsView(TaskService taskService) {
         this.taskService = taskService;
@@ -35,12 +40,35 @@ public class DetaialsView extends Composite<VerticalLayout> implements BeforeEnt
         backButton.addClickListener(event ->
                 getUI().ifPresent(ui -> ui.navigate("my-view2"))
         );
+        Button doneButton = new Button("Mark Done");
+        doneButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        deleteButton.addClickListener(event -> {
+            if (currentTask != null) {
+                taskService.deleteTask(currentTask.getId());
+                Notification.show("Task deleted");
+                getUI().ifPresent(ui -> ui.navigate("my-view2"));
+            }
+        });
+
+        doneButton.addClickListener(event -> {
+            if (currentTask != null) {
+                taskService.markDone(currentTask.getId());
+                Notification.show("Task marked as done");
+                getUI().ifPresent(ui -> ui.navigate("my-view2"));
+            }
+        });
 
         getContent().add(
                 title,
                 description,
                 priority,
                 date,
+                status,
+                doneButton,
+                deleteButton,
                 backButton
         );
     }
@@ -54,10 +82,12 @@ public class DetaialsView extends Composite<VerticalLayout> implements BeforeEnt
         );
 
         taskService.getTaskById(taskId).ifPresentOrElse(task -> {
+            currentTask = task;
             title.setText(task.getTitle());
             description.setText("Description: " + task.getDescription());
             priority.setText("Priority: " + task.getPriority());
             date.setText("Date: " + task.getDate());
+            status.setText("Status: " + (task.isDone() ? "Done" : "Not done"));
         }, () -> {
             title.setText("Task not found");
             description.setText("");
@@ -65,4 +95,6 @@ public class DetaialsView extends Composite<VerticalLayout> implements BeforeEnt
             date.setText("");
         });
     }
+
+
 }

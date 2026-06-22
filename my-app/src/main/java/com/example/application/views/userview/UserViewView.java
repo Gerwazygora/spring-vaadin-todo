@@ -59,6 +59,8 @@ public class UserViewView extends Composite<VerticalLayout> {
         basicGrid.addColumn(Task::getTitle).setHeader("Name");
         basicGrid.addColumn(Task::getPriority).setHeader("Priority");
         basicGrid.addColumn(Task::getDate).setHeader("Date");
+        basicGrid.addColumn(task -> task.isDone() ? "Done" : "Not done")
+                .setHeader("Status");
         basicGrid.setItems(taskService.getTasks(user));
         basicGrid.addItemClickListener(event -> {
             Task task = event.getItem();
