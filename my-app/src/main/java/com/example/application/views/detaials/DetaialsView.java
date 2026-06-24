@@ -15,6 +15,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.H2;
 
 @PageTitle("Detaials")
 @Route("my-view3/:taskId")
@@ -31,6 +33,8 @@ public class DetaialsView extends Composite<VerticalLayout> implements BeforeEnt
     private final Button deleteButton = new Button("Delete Task");
     private Task currentTask;
     private final Paragraph status = new Paragraph();
+    private final H2 stepsTitle = new H2("Steps");
+    private final VerticalLayout stepsLayout = new VerticalLayout();
 
 
     public DetaialsView(TaskService taskService) {
@@ -67,6 +71,8 @@ public class DetaialsView extends Composite<VerticalLayout> implements BeforeEnt
                 priority,
                 date,
                 status,
+                stepsTitle,
+                stepsLayout,
                 doneButton,
                 deleteButton,
                 backButton
@@ -83,16 +89,33 @@ public class DetaialsView extends Composite<VerticalLayout> implements BeforeEnt
 
         taskService.getTaskById(taskId).ifPresentOrElse(task -> {
             currentTask = task;
+
             title.setText(task.getTitle());
             description.setText("Description: " + task.getDescription());
             priority.setText("Priority: " + task.getPriority());
             date.setText("Date: " + task.getDate());
             status.setText("Status: " + (task.isDone() ? "Done" : "Not done"));
+
+            stepsLayout.removeAll();
+
+            task.getSteps().forEach(step -> {
+                Checkbox checkbox = new Checkbox(step.getName());
+                checkbox.setValue(step.isDone());
+
+                checkbox.addValueChangeListener(changeEvent -> {
+                    taskService.setStepDone(step.getId(), changeEvent.getValue());
+                });
+
+                stepsLayout.add(checkbox);
+            });
+
         }, () -> {
             title.setText("Task not found");
             description.setText("");
             priority.setText("");
             date.setText("");
+            status.setText("");
+            stepsLayout.removeAll();
         });
     }
 

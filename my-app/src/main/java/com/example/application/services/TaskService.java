@@ -4,6 +4,7 @@ import com.example.application.data.Task;
 import com.example.application.data.TaskRepository;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+import com.example.application.data.TaskStepRepository;
 
 import java.util.List;
 
@@ -11,9 +12,11 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskStepRepository taskStepRepository;
 
-    public TaskService(TaskRepository taskRepository) {
+    public TaskService(TaskRepository taskRepository, TaskStepRepository taskStepRepository) {
         this.taskRepository = taskRepository;
+        this.taskStepRepository = taskStepRepository;
     }
 
     public void addTask(String title, String description, String priority, String date, String ownerLogin, List<String> steps) {
@@ -48,5 +51,12 @@ public class TaskService {
 
     public void deleteTask(Long id) {
         taskRepository.deleteById(id);
+    }
+
+    public void setStepDone(Long stepId, boolean done) {
+        taskStepRepository.findById(stepId).ifPresent(step -> {
+            step.setDone(done);
+            taskStepRepository.save(step);
+        });
     }
 }

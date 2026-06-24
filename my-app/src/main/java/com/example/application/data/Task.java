@@ -8,6 +8,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.persistence.FetchType;
 
 @Entity
 public class Task {
@@ -22,7 +23,7 @@ public class Task {
     private String priority;
     private String date;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<TaskStep> steps = new ArrayList<>();
 
     public Task() {
