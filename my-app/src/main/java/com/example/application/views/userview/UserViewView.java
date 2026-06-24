@@ -19,6 +19,9 @@ import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import com.vaadin.flow.server.VaadinSession;
 import com.example.application.data.Task;
 import com.example.application.services.TaskService;
+import com.example.application.services.Broadcaster;
+import com.vaadin.flow.component.UI;
+import java.util.function.Consumer;
 
 @PageTitle("UserView")
 @Route("my-view2")
@@ -62,6 +65,20 @@ public class UserViewView extends Composite<VerticalLayout> {
         basicGrid.addColumn(task -> task.isDone() ? "Done" : "Not done")
                 .setHeader("Status");
         basicGrid.setItems(taskService.getTasks(user));
+
+        UI currentUi = UI.getCurrent();
+
+        Consumer<String> listener = message -> {
+            if (message.equals("tasks-updated")) {
+                currentUi.access(() -> {
+                    basicGrid.setItems(taskService.getTasks(user));
+                });
+            }
+        };
+
+        Broadcaster.register(listener);
+
+        addDetachListener(event -> Broadcaster.unregister(listener));
         basicGrid.addItemClickListener(event -> {
             Task task = event.getItem();
 

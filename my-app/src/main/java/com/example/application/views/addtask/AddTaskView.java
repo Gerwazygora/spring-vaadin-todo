@@ -27,6 +27,9 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.server.VaadinSession;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.application.services.Broadcaster;
+import com.vaadin.flow.component.UI;
+import java.util.function.Consumer;
 
 @PageTitle("AddTask")
 @Route("my-view4")
@@ -37,10 +40,12 @@ public class AddTaskView extends Composite<VerticalLayout> {
 
     public AddTaskView(TaskService taskService) {
         List<String> steps = new ArrayList<>();
+        Grid<String> stepsGrid = new Grid<>();
+        stepsGrid.addColumn(step -> step).setHeader("Steps");
+        stepsGrid.setItems(steps);
         this.taskService = taskService;
         H1 h1 = new H1();
         HorizontalLayout layoutRow = new HorizontalLayout();
-        Grid basicGrid = new Grid(SamplePerson.class);
         VerticalLayout layoutColumn2 = new VerticalLayout();
         TextField textField = new TextField();
         TextField textField2 = new TextField();
@@ -59,8 +64,6 @@ public class AddTaskView extends Composite<VerticalLayout> {
         layoutRow.addClassName(Gap.MEDIUM);
         layoutRow.setWidth("100%");
         layoutRow.getStyle().set("flex-grow", "1");
-        basicGrid.setWidth("100%");
-        basicGrid.getStyle().set("flex-grow", "0");
         layoutColumn2.setHeightFull();
         layoutRow.setFlexGrow(1.0, layoutColumn2);
         layoutColumn2.setWidth("100%");
@@ -89,13 +92,13 @@ public class AddTaskView extends Composite<VerticalLayout> {
         buttonPrimary2.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getContent().add(h1);
         getContent().add(layoutRow);
-        layoutRow.add(basicGrid);
         layoutRow.add(layoutColumn2);
         layoutColumn2.add(textField);
         layoutColumn2.add(textField2);
         layoutColumn2.add(comboBox);
         layoutColumn2.add(textField3);
         layoutColumn2.add(textField4);
+        layoutColumn2.add(stepsGrid);
         layoutColumn2.add(layoutRow2);
         layoutRow2.add(buttonPrimary);
         layoutRow2.add(buttonPrimary2);
@@ -103,10 +106,26 @@ public class AddTaskView extends Composite<VerticalLayout> {
         buttonPrimary.addClickListener(event -> {
             if (!textField4.getValue().isBlank()) {
                 steps.add(textField4.getValue());
-                Notification.show("Step added: " + textField4.getValue());
                 textField4.clear();
+
+                stepsGrid.getDataProvider().refreshAll();
+                Broadcaster.broadcast("steps-updated");
+
+                Notification.show("Step added");
             }
         });
+
+        UI currentUi = UI.getCurrent();
+
+        Consumer<String> listener = message -> {
+            if (message.equals("steps-updated")) {
+                currentUi.access(() -> stepsGrid.getDataProvider().refreshAll());
+            }
+        };
+
+        Broadcaster.register(listener);
+
+        addDetachListener(event -> Broadcaster.unregister(listener));
 
         buttonPrimary2.addClickListener(event -> {
             String user = (String) VaadinSession.getCurrent().getAttribute("user");
@@ -125,16 +144,10 @@ public class AddTaskView extends Composite<VerticalLayout> {
                     steps
             );
 
+            Broadcaster.broadcast("tasks-updated");
+
             Notification.show("Zadanie dodane");
             getUI().ifPresent(ui -> ui.navigate("my-view2"));
-        });
-
-        buttonPrimary.addClickListener(event -> {
-            if (!textField4.getValue().isBlank()) {
-                steps.add(textField4.getValue());
-                Notification.show("Step added: " + textField4.getValue());
-                textField4.clear();
-            }
         });
     }
 
